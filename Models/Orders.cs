@@ -1,10 +1,13 @@
-﻿namespace VonnPizzaBackEndService.Models
-{
-    public class Orders
-    {
-        public required int order_id { get; set; }
-        public required DateTime date { get; set; }
-        public required TimeSpan time { get; set; }
+﻿
 
+namespace VonnPizzaBackEndService.Models
+{
+    public interface Orders
+    {
+        public int OrderID { get; set; }
+        public DateTime OrderDateTime { get; set; }
+
+
+        
     }
 }

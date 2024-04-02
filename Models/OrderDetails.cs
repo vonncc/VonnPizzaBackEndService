@@ -1,10 +1,13 @@
-﻿namespace VonnPizzaBackEndService.Models
+﻿
+
+namespace VonnPizzaBackEndService.Models
 {
     public class OrderDetails
     {
-        public required int order_details_id { get; set; }
-        public required int order_id { get; set; }
-        public required int pizza_id { get; set; }
-        public required int quantity { get; set; }
+        public required int OrderDetailID { get; set; }
+        public required int OrderID { get; set; }
+        public required int PizzaID { get; set; }
+        public required int Quantity { get; set; }
+
     }
 }
