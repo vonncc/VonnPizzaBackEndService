@@ -7,23 +7,22 @@ namespace VonnPizzaBackEndService.Controllers
     [Route("apis/[controller]")]
     public class OrdersController : Controller
     {
-        // GET: OrdersController
-        public ActionResult Index()
+        // GET: OrdersController/GetAll
+        [HttpGet]
+        public ActionResult GetAll()
         {
-            return View();
+            // Retrieve sale data by ID
+            return Ok();
         }
 
-        // GET: OrdersController/Details/5
-        public ActionResult Details(int id)
+
+        // GET: OrdersController/GetID
+        [HttpGet("{id}")]
+        public ActionResult GetWithID(int id)
         {
-            return View();
+            return Ok();
         }
 
-        // GET: OrdersController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
 
         // POST: OrdersController/Create
         [HttpPost]
@@ -40,14 +39,9 @@ namespace VonnPizzaBackEndService.Controllers
             }
         }
 
-        // GET: OrdersController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
 
-        // POST: OrdersController/Edit/5
-        [HttpPost]
+        // POST: OrdersController/Edit
+        [HttpPut]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, IFormCollection collection)
         {
@@ -61,14 +55,8 @@ namespace VonnPizzaBackEndService.Controllers
             }
         }
 
-        // GET: OrdersController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: OrdersController/Delete/5
-        [HttpPost]
+        // POST: OrdersController/Delete
+        [HttpDelete]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {

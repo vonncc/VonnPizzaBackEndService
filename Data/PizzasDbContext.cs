@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mysqlx.Crud;
+using VonnPizzaBackEndService.Models;
 
 namespace VonnPizzaBackEndService.Data
 {
@@ -9,6 +10,6 @@ namespace VonnPizzaBackEndService.Data
         {
         }
 
-        public DbSet<Order> Orders { get; set; }
+        public DbSet<Pizzas> Pizzas { get; set; }
     }
 }

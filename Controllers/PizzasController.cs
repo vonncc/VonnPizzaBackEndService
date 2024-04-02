@@ -1,85 +1,158 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using VonnPizzaBackEndService.Models;
+using VonnPizzaBackEndService.Services;
+using CsvHelper;
 
 namespace VonnPizzaBackEndService.Controllers
 {
+    public class PizzaUploadDto
+    {
+        public IFormFile pizzaSchema { get; set; }
+        public IFormFile pizzaTypeSchema { get; set; }
+    }
     [ApiController]
     [Route("apis/[controller]")]
     public class PizzasController : Controller
     {
-        // GET: PizzasController
-        public ActionResult Index()
+        private readonly PizzasServices _pizzaService;
+
+        public PizzasController(PizzasServices pizzaService)
         {
-            return View();
+            _pizzaService = pizzaService;
         }
 
-        // GET: PizzasController/Details/5
-        public ActionResult Details(int id)
+        // GET: PizzasController/GetAll
+        [HttpGet]
+        public IActionResult GetAllPizzas()
         {
-            return View();
+            var pizzas = _pizzaService.GetAllPizzas();
+            return Ok(pizzas);
         }
 
-        // GET: PizzasController/Create
-        public ActionResult Create()
+        // GET: PizzasController/GetByID
+        [HttpGet("{id}")]
+        public IActionResult GetPizzaById(string id)
         {
-            return View();
+            var pizza = _pizzaService.GetPizzaById(id);
+            if (pizza == null)
+            {
+                return NotFound();
+            }
+            return Ok(pizza);
         }
-
-        // POST: PizzasController/Create
+        
+        // POST: PizzasController/Add
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public IActionResult AddPizza([FromBody] Pizzas pizza)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _pizzaService.AddPizza(pizza);
+            return CreatedAtAction(nameof(GetPizzaById), new { id = pizza.PizzaID }, pizza);
         }
 
-        // GET: PizzasController/Edit/5
-        public ActionResult Edit(int id)
+        // PUT: PizzasController/Update
+        [HttpPut("{id}")]
+        public IActionResult UpdatePizza(string id, [FromBody] Pizzas pizza)
         {
-            return View();
+            if (id != pizza.PizzaID)
+            {
+                return BadRequest();
+            }
+            _pizzaService.UpdatePizza(pizza);
+            return NoContent();
         }
 
-        // POST: PizzasController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        // POST: PizzasController/Delete
+        [HttpDelete("{id}")]
+        public IActionResult DeletePizza(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _pizzaService.DeletePizza(id);
+            return NoContent();
         }
 
-        // GET: PizzasController/Delete/5
-        public ActionResult Delete(int id)
+        // POST: PizzasController/Import
+        [HttpPost("import")]
+        public IActionResult ImportCsv([FromForm] PizzaUploadDto pizzaUploadDto)
         {
-            return View();
+            if (pizzaUploadDto.pizzaSchema == null || pizzaUploadDto.pizzaSchema.Length == 0 || pizzaUploadDto.pizzaTypeSchema == null || pizzaUploadDto.pizzaTypeSchema.Length == 0)
+            {
+                return BadRequest("Both CSV files are required.");
+            }
+
+            // Process the PizzaType CSV file
+            var pizzaTypeRecords = ProcessPizzaTypeCsv(pizzaUploadDto.pizzaTypeSchema);
+
+            // Process the Pizza CSV file
+            var pizzaRecords = ProcessPizzaCsv(pizzaUploadDto.pizzaSchema);
+
+            // Merge the records from both schemas
+            var mergedRecords = MergeRecords(pizzaTypeRecords, pizzaRecords);
+
+            // Save the merged records in chunks
+            SaveInChunks(mergedRecords);
+
+            return Ok("CSV files imported successfully.");
+
         }
 
-        // POST: PizzasController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        private List<PizzaTypeImportModel> ProcessPizzaTypeCsv(IFormFile pizzaTypeSchema)
         {
-            try
+            var pizzaTypeRecords = new List<PizzaTypeImportModel>();
+
+            using (var reader = new StreamReader(pizzaTypeSchema.OpenReadStream()))
+            using (var csv = new CsvHelper.CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                return RedirectToAction(nameof(Index));
+                pizzaTypeRecords = csv.GetRecords<PizzaTypeImportModel>().ToList();
             }
-            catch
+
+            return pizzaTypeRecords;
+        }
+
+        private List<PizzaImportModel> ProcessPizzaCsv(IFormFile pizzaSchema)
+        {
+            var pizzaRecords = new List<PizzaImportModel>();
+
+            using (var reader = new StreamReader(pizzaSchema.OpenReadStream()))
+            using (var csv = new CsvHelper.CsvReader(reader, CultureInfo.InvariantCulture))
             {
-                return View();
+                pizzaRecords = csv.GetRecords<PizzaImportModel>().ToList();
             }
+
+            return pizzaRecords;
+        }
+
+        private List<Pizzas> MergeRecords(List<PizzaTypeImportModel> pizzaTypeRecords, List<PizzaImportModel> pizzaRecords)
+        {
+            var mergedRecords = new List<Pizzas>();
+
+            foreach (var pizzaRecord in pizzaRecords)
+            {
+                var matchingTypeRecord = pizzaTypeRecords.FirstOrDefault(p => p.pizza_type_id == pizzaRecord.pizza_type_id);
+                if (matchingTypeRecord != null)
+                {
+                    var mergedRecord = new Pizzas
+                    {
+                        PizzaID = pizzaRecord.pizza_id,
+                        Name = matchingTypeRecord.name,
+                        Category = matchingTypeRecord.category,
+                        Ingredients = matchingTypeRecord.ingredients,
+                        Size = pizzaRecord.size,
+                        Price = pizzaRecord.price
+                    };
+                    mergedRecords.Add(mergedRecord);
+                }
+            }
+
+            return mergedRecords;
+        }
+
+        private void SaveInChunks(List<Pizzas> mergedRecords)
+        {
+            _pizzaService.SaveInChunks(mergedRecords);
         }
     }
 }

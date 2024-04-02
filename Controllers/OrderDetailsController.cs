@@ -7,25 +7,24 @@ namespace VonnPizzaBackEndService.Controllers
     [Route("apis/[controller]")]
     public class OrderDetailsController : Controller
     {
-        // GET: OrderDetailsController
-        public ActionResult Index()
+        // GET: OrdersDetailsController/GetAll
+        [HttpGet]
+        public ActionResult GetAll()
         {
-            return View();
+            // Retrieve sale data by ID
+            return Ok();
         }
 
-        // GET: OrderDetailsController/Details/5
-        public ActionResult Details(int id)
+
+        // GET: OrdersDetailsController/GetID
+        [HttpGet("{id}")]
+        public ActionResult GetWithID(int id)
         {
-            return View();
+            return Ok();
         }
 
-        // GET: OrderDetailsController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
 
-        // POST: OrderDetailsController/Create
+        // POST: OrdersDetailsController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create(IFormCollection collection)
@@ -40,14 +39,9 @@ namespace VonnPizzaBackEndService.Controllers
             }
         }
 
-        // GET: OrderDetailsController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
 
-        // POST: OrderDetailsController/Edit/5
-        [HttpPost]
+        // POST: OrdersDetailsController/Edit
+        [HttpPut]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, IFormCollection collection)
         {
@@ -61,14 +55,8 @@ namespace VonnPizzaBackEndService.Controllers
             }
         }
 
-        // GET: OrderDetailsController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: OrderDetailsController/Delete/5
-        [HttpPost]
+        // POST: OrdersDetailsController/Delete
+        [HttpDelete]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {

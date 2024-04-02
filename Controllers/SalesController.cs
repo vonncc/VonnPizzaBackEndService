@@ -10,7 +10,7 @@ namespace VonnPizzaBackEndService.Controllers
 
         // GET: apis/Sales/{id}
         [HttpGet("{id}")]
-        public ActionResult GetSale(int id)
+        public ActionResult GetID(int id)
         {
             // Retrieve sale data by ID
             return Ok();
