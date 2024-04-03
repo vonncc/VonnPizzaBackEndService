@@ -51,14 +51,14 @@ namespace VonnPizzaBackEndService.Controllers
         public async Task<IActionResult> AddOrderDetails([FromBody] OrderDetails orders)
         {
             await _orderDetailsService.AddOrderDetailsAsync(orders);
-            return CreatedAtAction(nameof(GetOrderDetailById), new { id = orders.OrderID }, orders);
+            return CreatedAtAction(nameof(GetOrderDetailById), new { id = orders.OrderDetailID }, orders);
         }
 
         // PUT: OrderDetailsController/Update
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateOrderDetails(int id, [FromBody] OrderDetails orders)
         {
-            if (id != orders.OrderID)
+            if (id != orders.OrderDetailID)
             {
                 return BadRequest();
             }
