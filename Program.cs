@@ -20,9 +20,6 @@ builder.Services.AddDbContext<PizzasDbContext>(options =>
 builder.Services.AddDbContext<OrderDetailsDbContext>(options =>
     options.UseMySQL(_connectionString));
 
-builder.Services.AddDbContext<>(options =>
-    options.UseSqlServer("DefaultConnection"));
-
 builder.Services.AddControllers();
 
 // Add service injection (dependency registration) here:
