@@ -16,52 +16,53 @@ namespace VonnPizzaBackEndService.Services
         private readonly OrdersDbContext _context;
         private readonly DRYFunctionLibrary _dryFunctionLibrary;
 
-        public OrdersServices(OrdersDbContext context)
+        public OrdersServices(OrdersDbContext context, DRYFunctionLibrary dryFunctionLibrary)
         {
             _context = context;
+            _dryFunctionLibrary = dryFunctionLibrary;
         }
 
-        public List<Orders> GetAllOrders(int limit = 0)
+        public async Task<List<Orders>> GetAllOrdersAsync(int limit = 0)
         {
             if (_dryFunctionLibrary.ShouldShowAll(limit))
-                return _context.Orders.ToList();
+                return await _context.Orders.ToListAsync();
 
-            return _context.Orders.Take(limit).ToList();
+            return await _context.Orders.Take(limit).ToListAsync();
         }
 
-        public Orders GetOrderById(int id)
+        public async Task<Orders> GetOrderByIdAsync(int id)
         {
-            return _context.Orders.FirstOrDefault(p => p.OrderID == id);
+            return await _context.Orders.FirstOrDefaultAsync(p => p.OrderID == id);
         }
 
-        public void AddOrder(Orders orders)
+        public async Task AddOrderAsync(Orders orders)
         {
             if (orders == null)
             {
                 throw new ArgumentNullException(nameof(orders));
             }
 
-            _context.Orders.Add(orders);
-            _context.SaveChanges();
+            await _context.Orders.AddAsync(orders);
+            await _context.SaveChangesAsync();
         }
 
-        public void UpdateOrder(Orders orders)
+        public async Task UpdateOrderAsync(Orders orders)
         {
             _context.Entry(orders).State = EntityState.Modified;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void DeleteOrder(int id)
+        public async Task DeleteOrderAsync(int id)
         {
-            var pizzaToDelete = _context.Orders.Find(id);
-            if (pizzaToDelete != null)
+            var orderToDelete = await _context.Orders.FindAsync(id);
+            if (orderToDelete != null)
             {
-                _context.Orders.Remove(pizzaToDelete);
-                _context.SaveChanges();
+                _context.Orders.Remove(orderToDelete);
+                await _context.SaveChangesAsync();
             }
         }
 
-        public void SaveInChunks(List<Orders> processedRecord)
+        public async Task SaveInChunksAsync(List<Orders> processedRecord)
         {
             var batchSize = 1000;
             var count = 0;
@@ -76,7 +77,7 @@ namespace VonnPizzaBackEndService.Services
                 {
                     // Save the chunk to the database
                     _context.Orders.AddRange(chunk);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     // Clear the chunk for the next batch
                     chunk.Clear();
@@ -85,7 +86,7 @@ namespace VonnPizzaBackEndService.Services
                 {
                     // Save the last chunk to the database
                     _context.Orders.AddRange(chunk);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                 }
             }
         }

@@ -7,6 +7,7 @@ using VonnPizzaBackEndService.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
+using VonnPizzaBackEndService.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,9 +24,11 @@ builder.Services.AddDbContext<OrderDetailsDbContext>(options =>
 builder.Services.AddControllers();
 
 // Add service injection (dependency registration) here:
+builder.Services.AddScoped<DRYFunctionLibrary>();
 builder.Services.AddScoped<PizzasServices>();
 builder.Services.AddScoped<OrdersServices>();
 builder.Services.AddScoped<OrderDetailsServices>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

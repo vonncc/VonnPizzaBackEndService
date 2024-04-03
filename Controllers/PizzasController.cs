@@ -28,56 +28,56 @@ namespace VonnPizzaBackEndService.Controllers
         }
 
         // GET: PizzasController/GetAll
-        [HttpGet]
-        public IActionResult GetAllPizzas()
+        [HttpGet("GetAll/{limit}")]
+        public async Task<IActionResult> GetAllPizzas(int limit)
         {
-            var pizzas = _pizzaService.GetAllPizzas();
+            var pizzas = await _pizzaService.GetAllPizzasAsync(limit);
             return Ok(pizzas);
         }
 
         // GET: PizzasController/GetByID
         [HttpGet("{id}")]
-        public IActionResult GetPizzaById(string id)
+        public async Task<IActionResult> GetPizzaById(string id)
         {
-            var pizza = _pizzaService.GetPizzaById(id);
+            var pizza = await _pizzaService.GetPizzaByIdAsync(id);
             if (pizza == null)
             {
                 return NotFound();
             }
             return Ok(pizza);
         }
-        
+
         // POST: PizzasController/Add
         [HttpPost]
-        public IActionResult AddPizza([FromBody] Pizzas pizza)
+        public async Task<IActionResult> AddPizza([FromBody] Pizzas pizza)
         {
-            _pizzaService.AddPizza(pizza);
+            await _pizzaService.AddPizzaAsync(pizza);
             return CreatedAtAction(nameof(GetPizzaById), new { id = pizza.PizzaID }, pizza);
         }
 
         // PUT: PizzasController/Update
         [HttpPut("{id}")]
-        public IActionResult UpdatePizza(string id, [FromBody] Pizzas pizza)
+        public async Task<IActionResult> UpdatePizza(string id, [FromBody] Pizzas pizza)
         {
             if (id != pizza.PizzaID)
             {
                 return BadRequest();
             }
-            _pizzaService.UpdatePizza(pizza);
+            await _pizzaService.UpdatePizzaAsync(pizza);
             return NoContent();
         }
 
         // POST: PizzasController/Delete
         [HttpDelete("{id}")]
-        public IActionResult DeletePizza(int id)
+        public async Task<IActionResult> DeletePizza(int id)
         {
-            _pizzaService.DeletePizza(id);
+            await _pizzaService.DeletePizzaAsync(id);
             return NoContent();
         }
 
         // POST: PizzasController/Import
         [HttpPost("import")]
-        public IActionResult ImportCsv([FromForm] PizzaUploadDto pizzaUploadDto)
+        public async Task<IActionResult> ImportCsv([FromForm] PizzaUploadDto pizzaUploadDto)
         {
             if (pizzaUploadDto.pizzaSchema == null || pizzaUploadDto.pizzaSchema.Length == 0 || pizzaUploadDto.pizzaTypeSchema == null || pizzaUploadDto.pizzaTypeSchema.Length == 0)
             {
@@ -94,10 +94,9 @@ namespace VonnPizzaBackEndService.Controllers
             var mergedRecords = MergeRecords(pizzaTypeRecords, pizzaRecords);
 
             // Save the merged records in chunks
-            SaveInChunks(mergedRecords);
+            await _pizzaService.SaveInChunksAsync(mergedRecords);
 
             return Ok("CSV files imported successfully.");
-
         }
 
         private List<PizzaTypeImportModel> ProcessPizzaTypeCsv(IFormFile pizzaTypeSchema)
@@ -151,9 +150,9 @@ namespace VonnPizzaBackEndService.Controllers
             return mergedRecords;
         }
 
-        private void SaveInChunks(List<Pizzas> mergedRecords)
+        private async void SaveInChunks(List<Pizzas> mergedRecords)
         {
-            _pizzaService.SaveInChunks(mergedRecords);
+            await _pizzaService.SaveInChunksAsync(mergedRecords);
         }
     }
 }
