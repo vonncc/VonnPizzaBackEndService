@@ -27,7 +27,7 @@ namespace VonnPizzaBackEndService.Controllers
         }
 
         // GET: OrderDetailsController/GetAll
-        [HttpGet("{limit}")]
+        [HttpGet("GetAll/{limit}")]
         public async Task<IActionResult> GetAllOrderDetails(int limit)
         {
             var orders = await _orderDetailsService.GetAllOrderDetailsAsync(limit);
