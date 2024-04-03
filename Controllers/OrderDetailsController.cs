@@ -1,73 +1,130 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using VonnPizzaBackEndService.Models;
+using VonnPizzaBackEndService.Services;
+using CsvHelper;
 
 namespace VonnPizzaBackEndService.Controllers
 {
+
+    public class OrderDetailsUploadDto
+    {
+        public required IFormFile orderDetailsCSVFile { get; set; }
+    }
     [ApiController]
     [Route("apis/[controller]")]
     public class OrderDetailsController : Controller
     {
-        // GET: OrdersDetailsController/GetAll
+        private readonly OrderDetailsServices _orderDetailsService;
+
+        public OrderDetailsController(OrderDetailsServices orderDetailsService)
+        {
+            _orderDetailsService = orderDetailsService;
+        }
+
+        // GET: OrderDetailsController/GetAll
         [HttpGet]
-        public ActionResult GetAll()
+        public IActionResult GetAllOrderDetails()
         {
-            // Retrieve sale data by ID
-            return Ok();
+            var orders = _orderDetailsService.GetAllOrderDetails();
+            return Ok(orders);
         }
 
-
-        // GET: OrdersDetailsController/GetID
+        // GET: OrderDetailsController/GetByID
         [HttpGet("{id}")]
-        public ActionResult GetWithID(int id)
+        public IActionResult GetOrderDetailById(int id)
         {
-            return Ok();
+            var order = _orderDetailsService.GetOrderDetailById(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+            return Ok(order);
         }
 
-
-        // POST: OrdersDetailsController/Create
+        // POST: OrderDetailsController/Add
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public IActionResult AddOrderDetails([FromBody] OrderDetails orders)
         {
-            try
+            _orderDetailsService.AddOrderDetails(orders);
+            return CreatedAtAction(nameof(GetOrderDetailById), new { id = orders.OrderID }, orders);
+        }
+
+        // PUT: OrderDetailsController/Update
+        [HttpPut("{id}")]
+        public IActionResult UpdateOrderDetails(int id, [FromBody] OrderDetails orders)
+        {
+            if (id != orders.OrderID)
             {
-                return RedirectToAction(nameof(Index));
+                return BadRequest();
             }
-            catch
+            _orderDetailsService.UpdateOrderDetails(orders);
+            return NoContent();
+        }
+
+        // POST: OrderDetailsController/Delete
+        [HttpDelete("{id}")]
+        public IActionResult DeleteOrderDetails(int id)
+        {
+            _orderDetailsService.DeleteOrderDetails(id);
+            return NoContent();
+        }
+
+        // POST: OrderDetailsController/Import
+        [HttpPost("import")]
+        public IActionResult ImportCsv(OrderDetailsUploadDto ordersDetailsCSV)
+        {
+            if (ordersDetailsCSV.orderDetailsCSVFile == null || ordersDetailsCSV.orderDetailsCSVFile.Length == 0)
             {
-                return View();
+                return BadRequest("CSV file is required.");
             }
+
+            // Process the OrderType CSV file
+            var ordersDetailsRecords = ProcessOrdersCsv(ordersDetailsCSV.orderDetailsCSVFile);
+
+            // Save the merged records in chunks
+            SaveInChunks(ordersDetailsRecords);
+
+            return Ok("CSV files imported successfully.");
+
+        }
+
+        private List<OrderDetails> ProcessOrdersCsv(IFormFile toProcessOrdersDetailsCSV)
+        {
+            var processedOrdersDetailsRecords = new List<OrderDetailsImportModel>();
+
+            using (var reader = new StreamReader(toProcessOrdersDetailsCSV.OpenReadStream()))
+            using (var csv = new CsvHelper.CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                processedOrdersDetailsRecords = csv.GetRecords<OrderDetailsImportModel>().ToList();
+            }
+
+            var newRecord = new List<OrderDetails>();
+
+            foreach (var orderDetailsRecord in processedOrdersDetailsRecords)
+            {
+
+                var order = new OrderDetails
+                {
+                    OrderDetailID = orderDetailsRecord.order_details_id,
+                    OrderID = orderDetailsRecord.order_id,
+                    PizzaID = orderDetailsRecord.pizza_id,
+                    Quantity = orderDetailsRecord.quantity
+                };
+                newRecord.Add(order);
+            }
+ 
+            return newRecord;
         }
 
 
-        // POST: OrdersDetailsController/Edit
-        [HttpPut]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        private void SaveInChunks(List<OrderDetails> processedRecords)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // POST: OrdersDetailsController/Delete
-        [HttpDelete]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            _orderDetailsService.SaveInChunks(processedRecords);
         }
     }
 }

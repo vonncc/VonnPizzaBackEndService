@@ -13,9 +13,9 @@ namespace VonnPizzaBackEndService.Models
         public required int Quantity { get; set; }
 
         [ForeignKey("OrderID")]
-        public Orders Order { get; set; }
+        public int OrderID { get; set; }
         [ForeignKey("PizzaID")]
-        public Pizzas Pizza { get; set; }
+        public string PizzaID { get; set; }
 
     }
 }
