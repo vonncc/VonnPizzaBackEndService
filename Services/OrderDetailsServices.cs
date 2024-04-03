@@ -1,21 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using VonnPizzaBackEndService.Data;
 using VonnPizzaBackEndService.Models;
+using VonnPizzaBackEndService.Utilities;
 
 namespace VonnPizzaBackEndService.Services
 {
     public class OrderDetailsServices
     {
         private readonly OrderDetailsDbContext _context;
+        private readonly DRYFunctionLibrary _dryFunctionLibrary;
 
         public OrderDetailsServices(OrderDetailsDbContext context)
         {
             _context = context;
         }
 
-        public List<OrderDetails> GetAllOrderDetails()
+        public List<OrderDetails> GetAllOrderDetails(int limit = 0)
         {
-            return _context.OrderDetails.ToList();
+            if (_dryFunctionLibrary.ShouldShowAll(limit))
+                return _context.OrderDetails.ToList();
+
+            return _context.OrderDetails.Take(limit).ToList();
         }
 
         public OrderDetails GetOrderDetailById(int id)

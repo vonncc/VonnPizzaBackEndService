@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using VonnPizzaBackEndService.Utilities;
 
 
 namespace VonnPizzaBackEndService.Services
@@ -13,15 +14,19 @@ namespace VonnPizzaBackEndService.Services
     public class OrdersServices
     {
         private readonly OrdersDbContext _context;
+        private readonly DRYFunctionLibrary _dryFunctionLibrary;
 
         public OrdersServices(OrdersDbContext context)
         {
             _context = context;
         }
 
-        public List<Orders> GetAllOrders()
+        public List<Orders> GetAllOrders(int limit = 0)
         {
-            return _context.Orders.ToList();
+            if (_dryFunctionLibrary.ShouldShowAll(limit))
+                return _context.Orders.ToList();
+
+            return _context.Orders.Take(limit).ToList();
         }
 
         public Orders GetOrderById(int id)
