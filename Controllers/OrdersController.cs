@@ -28,18 +28,18 @@ namespace VonnPizzaBackEndService.Controllers
         }
 
         // GET: OrdersController/GetAll
-        [HttpGet]
-        public IActionResult GetAllOrders()
+        [HttpGet("{limit}")]
+        public async Task<IActionResult> GetAllOrders(int limit)
         {
-            var orders = _ordersService.GetAllOrders();
+            var orders = await _ordersService.GetAllOrdersAsync(limit);
             return Ok(orders);
         }
 
         // GET: OrdersController/GetByID
         [HttpGet("{id}")]
-        public IActionResult GetOrderById(int id)
+        public async Task<IActionResult> GetOrderById(int id)
         {
-            var order = _ordersService.GetOrderById(id);
+            var order = await _ordersService.GetOrderByIdAsync(id);
             if (order == null)
             {
                 return NotFound();
@@ -49,35 +49,35 @@ namespace VonnPizzaBackEndService.Controllers
 
         // POST: OrdersController/Add
         [HttpPost]
-        public IActionResult AddOrder([FromBody] Orders orders)
+        public async Task<IActionResult> AddOrder([FromBody] Orders orders)
         {
-            _ordersService.AddOrder(orders);
+            await _ordersService.AddOrderAsync(orders);
             return CreatedAtAction(nameof(GetOrderById), new { id = orders.OrderID }, orders);
         }
 
         // PUT: OrdersController/Update
         [HttpPut("{id}")]
-        public IActionResult UpdateOrder(int id, [FromBody] Orders orders)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] Orders orders)
         {
             if (id != orders.OrderID)
             {
                 return BadRequest();
             }
-            _ordersService.UpdateOrder(orders);
+            await _ordersService.UpdateOrderAsync(orders);
             return NoContent();
         }
 
         // POST: OrdersController/Delete
         [HttpDelete("{id}")]
-        public IActionResult DeleteOrder(int id)
+        public async Task<IActionResult> DeleteOrder(int id)
         {
-            _ordersService.DeleteOrder(id);
+            await _ordersService.DeleteOrderAsync(id);
             return NoContent();
         }
 
         // POST: OrdersController/Import
         [HttpPost("import")]
-        public IActionResult ImportCsv(OrderUploadDto ordersCSV)
+        public async Task<IActionResult> ImportCsv(OrderUploadDto ordersCSV)
         {
             if (ordersCSV.orderCSVFile == null || ordersCSV.orderCSVFile.Length == 0)
             {
@@ -88,10 +88,9 @@ namespace VonnPizzaBackEndService.Controllers
             var ordersRecords = ProcessOrdersCsv(ordersCSV.orderCSVFile);
 
             // Save the merged records in chunks
-            SaveInChunks(ordersRecords);
+            await _ordersService.SaveInChunksAsync(ordersRecords);
 
             return Ok("CSV files imported successfully.");
-
         }
 
         private List<Orders> ProcessOrdersCsv(IFormFile toProcessOrdersCSV)
@@ -126,9 +125,9 @@ namespace VonnPizzaBackEndService.Controllers
         }
 
 
-        private void SaveInChunks(List<Orders> processedRecords)
+        private async Task SaveInChunks(List<Orders> processedRecords)
         {
-            _ordersService.SaveInChunks(processedRecords);
+            await _ordersService.SaveInChunksAsync(processedRecords);
         }
     }
 }

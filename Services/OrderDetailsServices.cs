@@ -11,25 +11,26 @@ namespace VonnPizzaBackEndService.Services
         private readonly OrderDetailsDbContext _context;
         private readonly DRYFunctionLibrary _dryFunctionLibrary;
 
-        public OrderDetailsServices(OrderDetailsDbContext context)
+        public OrderDetailsServices(OrderDetailsDbContext context, DRYFunctionLibrary dryFunctionLibrary)
         {
             _context = context;
+            _dryFunctionLibrary = dryFunctionLibrary;
         }
 
-        public List<OrderDetails> GetAllOrderDetails(int limit = 0)
+        public async Task<List<OrderDetails>> GetAllOrderDetailsAsync(int limit = 0)
         {
             if (_dryFunctionLibrary.ShouldShowAll(limit))
-                return _context.OrderDetails.ToList();
+                return await _context.OrderDetails.ToListAsync();
 
-            return _context.OrderDetails.Take(limit).ToList();
+            return await _context.OrderDetails.Take(limit).ToListAsync();
         }
 
-        public OrderDetails GetOrderDetailById(int id)
+        public async Task<OrderDetails> GetOrderDetailByIdAsync(int id)
         {
-            return _context.OrderDetails.FirstOrDefault(p => p.OrderID == id);
+            return await _context.OrderDetails.FirstOrDefaultAsync(p => p.OrderID == id);
         }
 
-        public void AddOrderDetails(OrderDetails orderDetails)
+        public async Task AddOrderDetailsAsync(OrderDetails orderDetails)
         {
             if (orderDetails == null)
             {
@@ -37,26 +38,26 @@ namespace VonnPizzaBackEndService.Services
             }
 
             _context.OrderDetails.Add(orderDetails);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void UpdateOrderDetails(OrderDetails orderDetails)
+        public async Task UpdateOrderDetailsAsync(OrderDetails orderDetails)
         {
             _context.Entry(orderDetails).State = EntityState.Modified;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void DeleteOrderDetails(int id)
+        public async Task DeleteOrderDetailsAsync(int id)
         {
-            var orderDetailsToDelete = _context.OrderDetails.Find(id);
+            var orderDetailsToDelete = await _context.OrderDetails.FindAsync(id);
             if (orderDetailsToDelete != null)
             {
                 _context.OrderDetails.Remove(orderDetailsToDelete);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
-        public void SaveInChunks(List<OrderDetails> processedRecord)
+        public async Task SaveInChunksAsync(List<OrderDetails> processedRecord)
         {
             var batchSize = 1000;
             var count = 0;
@@ -71,7 +72,7 @@ namespace VonnPizzaBackEndService.Services
                 {
                     // Save the chunk to the database
                     _context.OrderDetails.AddRange(chunk);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
                     // Clear the chunk for the next batch
                     chunk.Clear();
@@ -80,7 +81,7 @@ namespace VonnPizzaBackEndService.Services
                 {
                     // Save the last chunk to the database
                     _context.OrderDetails.AddRange(chunk);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
                 }
             }
         }
