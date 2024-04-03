@@ -1,10 +1,11 @@
 ﻿
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VonnPizzaBackEndService.Models
 {
-    public interface Orders
+    public class Orders
     {
         [Key]
         public int OrderID { get; set; }

@@ -12,9 +12,10 @@ namespace VonnPizzaBackEndService.Controllers
 {
     public class PizzaUploadDto
     {
-        public IFormFile pizzaSchema { get; set; }
-        public IFormFile pizzaTypeSchema { get; set; }
+        public required IFormFile pizzaSchema { get; set; }
+        public required IFormFile pizzaTypeSchema { get; set; }
     }
+
     [ApiController]
     [Route("apis/[controller]")]
     public class PizzasController : Controller
