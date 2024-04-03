@@ -1,10 +1,18 @@
-﻿namespace VonnPizzaBackEndService.Models
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace VonnPizzaBackEndService.Models
 {
     public class Pizzas
     {
-        public required int pizza_id { get; set; }
-        public required int pizza_type_id { get; set; }
-        public required string size { get; set; }
-        public required double price { get; set; }
+        [Key] // Define the primary key
+        public required string PizzaID { get; set; }
+       // public required string PizzaTypeID { get; set; }
+        public required string Size { get; set; }
+        public required string Name { get; set; }
+        public required string Category { get; set; }
+        public required double Price { get; set; }
+        public required string Ingredients { get; set; }
+
     }
 }

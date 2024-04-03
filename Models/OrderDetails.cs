@@ -1,10 +1,19 @@
-﻿namespace VonnPizzaBackEndService.Models
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace VonnPizzaBackEndService.Models
 {
     public class OrderDetails
     {
-        public required int order_details_id { get; set; }
-        public required int order_id { get; set; }
-        public required int pizza_id { get; set; }
-        public required int quantity { get; set; }
+        [Key]
+        public required int OrderDetailID { get; set; }
+        
+        public required int Quantity { get; set; }
+
+        [ForeignKey("OrderID")]
+        public int OrderID { get; set; }
+        [ForeignKey("PizzaID")]
+        public string PizzaID { get; set; }
+
     }
 }
